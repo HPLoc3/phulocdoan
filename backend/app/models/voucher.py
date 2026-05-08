@@ -14,7 +14,7 @@ class Voucher(Base):
 
     id = Column(BigInteger, primary_key=True, index=True)
     code = Column(String(50), unique=True, nullable=False, index=True)
-    discount_type = Column(SQLEnum(DiscountType), nullable=False)
+    discount_type = Column(SQLEnum(DiscountType, name="discount_type"), nullable=False)
     discount_value = Column(Numeric(12, 2), nullable=False)
     min_order_amount = Column(Numeric(12, 2), nullable=False, default=0)
     max_discount_amount = Column(Numeric(12, 2))

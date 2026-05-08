@@ -16,7 +16,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
     phone = Column(String(20))
-    role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.customer)
+    role = Column(SQLEnum(UserRole, name="user_role"), nullable=False, default=UserRole.customer)
     is_active = Column(Boolean, nullable=False, default=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

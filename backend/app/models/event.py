@@ -30,7 +30,7 @@ class Event(Base):
     title = Column(String(500), nullable=False)
     description = Column(Text)
     event_date = Column(DateTime(timezone=True), nullable=False)
-    status = Column(SQLEnum(EventStatus), nullable=False, default=EventStatus.draft)
+    status = Column(SQLEnum(EventStatus, name="event_status"), nullable=False, default=EventStatus.draft)
     is_flash_sale = Column(Boolean, nullable=False, default=False)
     sale_start_at = Column(DateTime(timezone=True))
     sale_end_at = Column(DateTime(timezone=True))

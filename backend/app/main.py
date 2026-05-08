@@ -24,5 +24,8 @@ app.add_middleware(
 async def health_check():
     return {"status": "ok", "message": "Concert Ticket Booking API is running"}
 
-# TODO: Include routers here
-# app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
+from app.api import bookings, events, venues
+
+app.include_router(bookings.router, prefix=f"{settings.API_V1_STR}/bookings", tags=["bookings"])
+app.include_router(events.router, prefix=f"{settings.API_V1_STR}/events", tags=["events"])
+app.include_router(venues.router, prefix=f"{settings.API_V1_STR}/venues", tags=["venues"])

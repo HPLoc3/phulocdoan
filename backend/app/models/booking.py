@@ -31,7 +31,7 @@ class Booking(Base):
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False, index=True)
     event_id = Column(BigInteger, ForeignKey("events.id"), nullable=False, index=True)
     idempotency_key = Column(UUID(as_uuid=True), unique=True, nullable=False)
-    status = Column(SQLEnum(BookingStatus), nullable=False, default=BookingStatus.pending)
+    status = Column(SQLEnum(BookingStatus, name="booking_status"), nullable=False, default=BookingStatus.pending)
     subtotal = Column(Numeric(12, 2), nullable=False, default=0)
     discount_amount = Column(Numeric(12, 2), nullable=False, default=0)
     total_amount = Column(Numeric(12, 2), nullable=False, default=0)
@@ -45,6 +45,11 @@ class Booking(Base):
     items = relationship("BookingItem", back_populates="booking", cascade="all, delete-orphan")
     payment = relationship("Payment", back_populates="booking", uselist=False)
     voucher_redemption = relationship("VoucherRedemption", back_populates="booking", uselist=False)
+    event = relationship("Event")
+
+    @property
+    def event_title(self) -> str:
+        return self.event.title if self.event else None
 
 class BookingItem(Base):
     __tablename__ = "booking_items"
@@ -64,8 +69,8 @@ class Payment(Base):
     id = Column(BigInteger, primary_key=True, index=True)
     booking_id = Column(BigInteger, ForeignKey("bookings.id"), nullable=False, unique=True)
     transaction_id = Column(UUID(as_uuid=True), server_default=text("uuid_generate_v4()"), unique=True, nullable=False)
-    method = Column(SQLEnum(PaymentMethod), nullable=False)
-    status = Column(SQLEnum(PaymentStatus), nullable=False, default=PaymentStatus.pending)
+    method = Column(SQLEnum(PaymentMethod, name="payment_method"), nullable=False)
+    status = Column(SQLEnum(PaymentStatus, name="payment_status"), nullable=False, default=PaymentStatus.pending)
     amount = Column(Numeric(12, 2), nullable=False)
     paid_at = Column(DateTime(timezone=True))
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
