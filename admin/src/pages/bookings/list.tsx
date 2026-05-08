@@ -1,5 +1,5 @@
 import { List, useTable, DateField, FilterDropdown } from "@refinedev/antd";
-import { Table, Tag, Select } from "antd";
+import { Table, Tag, Select, Input, DatePicker } from "antd";
 
 export const BookingList = () => {
     const { tableProps } = useTable({
@@ -10,6 +10,7 @@ export const BookingList = () => {
         <List>
             <Table {...tableProps} rowKey="id">
                 <Table.Column dataIndex="id" title="ID" />
+                <Table.Column dataIndex="user_email" title="Người đặt" />
                 <Table.Column 
                     dataIndex="event_title" 
                     title="Tên sự kiện" 
@@ -59,6 +60,17 @@ export const BookingList = () => {
                 <Table.Column 
                     dataIndex="created_at" 
                     title="Ngày đặt" 
+                    filterDropdown={(props) => (
+                        <FilterDropdown 
+                            {...props}
+                            mapValue={(selectedKeys) => {
+                                if (!selectedKeys || selectedKeys.length === 0) return selectedKeys;
+                                return selectedKeys.map(date => typeof date === 'object' && date.toISOString ? date.toISOString() : date);
+                            }}
+                        >
+                            <DatePicker.RangePicker />
+                        </FilterDropdown>
+                    )}
                     render={(value: any) => <DateField value={value} format="DD/MM/YYYY HH:mm:ss" />}
                 />
             </Table>

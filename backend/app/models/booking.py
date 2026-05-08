@@ -46,10 +46,21 @@ class Booking(Base):
     payment = relationship("Payment", back_populates="booking", uselist=False)
     voucher_redemption = relationship("VoucherRedemption", back_populates="booking", uselist=False)
     event = relationship("Event")
+    user = relationship("User")
 
     @property
     def event_title(self) -> str:
-        return self.event.title if self.event else None
+        from sqlalchemy.orm.attributes import instance_state
+        if 'event' in instance_state(self).dict:
+            return self.event.title if self.event else None
+        return None
+
+    @property
+    def user_email(self) -> str:
+        from sqlalchemy.orm.attributes import instance_state
+        if 'user' in instance_state(self).dict:
+            return self.user.email if self.user else None
+        return None
 
 class BookingItem(Base):
     __tablename__ = "booking_items"

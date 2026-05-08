@@ -15,6 +15,8 @@ router = APIRouter()
 async def get_current_user_id() -> int:
     return 3
 
+from fastapi import Query
+
 @router.get("/", response_model=List[BookingResponse])
 async def get_bookings(
     response: Response,
@@ -24,6 +26,7 @@ async def get_bookings(
     _order: str = "DESC",
     status: str = None,
     event_title_like: str = None,
+    created_at: List[str] = Query(None),
     db: AsyncSession = Depends(get_db)
 ):
     """API lấy danh sách Booking cho Operation Dashboard (React Refine)"""
@@ -33,7 +36,10 @@ async def get_bookings(
     from sqlalchemy.orm import selectinload
     from app.models.event import Event
     
-    stmt = select(Booking).options(selectinload(Booking.event))
+    stmt = select(Booking).options(
+        selectinload(Booking.event),
+        selectinload(Booking.user)
+    )
     count_stmt = select(func.count()).select_from(Booking)
     
     # Filters
@@ -44,6 +50,16 @@ async def get_bookings(
     if event_title_like:
         stmt = stmt.join(Event).where(Event.title.ilike(f"%{event_title_like}%"))
         count_stmt = count_stmt.join(Event).where(Event.title.ilike(f"%{event_title_like}%"))
+        
+    if created_at and len(created_at) == 2:
+        from datetime import datetime
+        try:
+            start_date = datetime.fromisoformat(created_at[0].replace('Z', '+00:00'))
+            end_date = datetime.fromisoformat(created_at[1].replace('Z', '+00:00'))
+            stmt = stmt.where(Booking.created_at >= start_date, Booking.created_at <= end_date)
+            count_stmt = count_stmt.where(Booking.created_at >= start_date, Booking.created_at <= end_date)
+        except ValueError:
+            pass
         
     # Sorting
     if _sort and hasattr(Booking, _sort):

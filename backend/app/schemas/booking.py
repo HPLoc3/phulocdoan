@@ -17,6 +17,7 @@ class BookingCreate(BaseModel):
 # Response payload
 class BookingResponse(BaseModel):
     id: int
+    user_email: Optional[str] = None
     event_id: int
     event_title: Optional[str] = None
     status: BookingStatus
