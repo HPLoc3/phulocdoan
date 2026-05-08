@@ -37,6 +37,7 @@ Dựa trên nguyên tắc MVP (Minimum Viable Product), dưới đây là các q
 ### ✅ What I have done (Những gì đã hoàn thiện)
 - **Luồng Khách hàng (Customer Flow):** Giao diện UI Web hoàn chỉnh, xem danh sách sự kiện, chi tiết sự kiện (polling data real-time), chọn vé và gọi API tạo Booking.
 - **Luồng Vận hành (Operation Flow):** Bảng điều khiển Admin với đầy đủ tính năng tạo, sửa, tìm kiếm Sự kiện và lọc đơn Bookings (dựa trên các tham số truy vấn động).
+- **Voucher System & Anti-Abuse:** Hỗ trợ áp dụng mã giảm giá (Voucher) khi đặt vé. Hệ thống sử dụng Row-level Lock (`SELECT FOR UPDATE`) trực tiếp trên row của Voucher để ngăn chặn việc người dùng bào mã (Voucher Abuse) khi mã chỉ còn 1 lượt dùng nhưng có 100 requests đánh vào cùng lúc.
 - **Concurrency Control:** Setup hoàn thiện bài toán chống Overselling bằng Redis + Postgres, có kèm theo file script chạy giả lập (`backend/test_concurrency.py`).
 - **Containerization:** Toàn bộ hệ thống chạy với 1 lệnh duy nhất `docker-compose up --build`, sẵn sàng cho đánh giá.
 
@@ -45,7 +46,6 @@ Dựa trên nguyên tắc MVP (Minimum Viable Product), dưới đây là các q
 - **Payment Gateway:** Quá trình thanh toán được giả định là thành công ngay khi trừ vé (Trạng thái chuyển sang `confirmed` / `paid`). Trong thực tế, luồng này sẽ bao gồm trạng thái `payment_pending`, giữ vé (reserve) trong 15 phút, nếu Cổng thanh toán (Momo/VNPay) trả về lỗi thì nhả vé lại kho.
 
 ### ❌ What I have NOT done (Những gì chưa làm)
-- **Voucher System:** Đã thiết kế Database schema (`vouchers`, `voucher_redemptions`) nhưng API áp dụng Voucher tạm thời chưa implement để tập trung tối đa nguồn lực xử lý bài toán Concurrency (điểm cốt lõi của đề bài).
 - **Role-Based Access Control (RBAC):** Admin dashboard mở hoàn toàn, chưa tích hợp chặn quyền phân mảnh User/Admin.
 - **Unit Tests coverage:** Mới chỉ cung cấp Integration Script để test Concurrency, chưa phủ Unit tests (PyTest) cho mọi hàm nhỏ trong hệ thống do giới hạn thời gian (48h).
 

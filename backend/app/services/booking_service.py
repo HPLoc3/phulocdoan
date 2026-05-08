@@ -8,6 +8,7 @@ from uuid import UUID
 
 from app.models.booking import Booking, BookingItem, BookingStatus
 from app.models.event import TicketCategory, Event
+from app.models.voucher import Voucher, VoucherRedemption
 from app.schemas.booking import BookingCreate
 from app.core.redis import redis_client
 
@@ -41,9 +42,16 @@ class BookingService:
     @staticmethod
     async def _process_booking_in_db(db: AsyncSession, user_id: int, payload: BookingCreate, idem_key: str) -> Booking:
         try:
-            # Tính tổng tiền
-            subtotal = 0
-            
+            # Kiểm tra Voucher nếu có
+            voucher = None
+            if payload.voucher_code:
+                result = await db.execute(
+                    select(Voucher).where(Voucher.code == payload.voucher_code).with_for_update()
+                )
+                voucher = result.scalar_one_or_none()
+                if not voucher or voucher.remaining_quantity <= 0:
+                    raise HTTPException(status_code=400, detail="Voucher không tồn tại hoặc đã hết")
+
             # Khởi tạo booking
             booking = Booking(
                 user_id=user_id,
@@ -52,15 +60,16 @@ class BookingService:
                 status=BookingStatus.pending
             )
             db.add(booking)
-            await db.flush() # Để lấy booking.id
+            await db.flush() # Lấy booking.id
+
+            subtotal = 0
 
             for item in payload.items:
                 # Lớp 2: Pessimistic Lock Database (FOR UPDATE)
-                # Chỉ lock đúng dòng category này.
                 stmt = select(TicketCategory).where(
                     TicketCategory.id == item.ticket_category_id,
                     TicketCategory.event_id == payload.event_id
-                ).with_for_update(skip_locked=False) # skip_locked=True nếu dùng queue
+                ).with_for_update(skip_locked=False)
                 
                 result = await db.execute(stmt)
                 category = result.scalar_one_or_none()
@@ -69,7 +78,6 @@ class BookingService:
                     raise HTTPException(status_code=404, detail=f"Ticket category {item.ticket_category_id} not found")
                 
                 if category.remaining_quantity < item.quantity:
-                    # Lớp 3: Constraint DB sẽ bắt nếu lọt qua bước này, nhưng ta chủ động báo lỗi sớm
                     raise HTTPException(status_code=400, detail=f"Không đủ vé cho hạng {category.name}. Còn lại: {category.remaining_quantity}")
                 
                 # Cập nhật số vé
@@ -89,12 +97,31 @@ class BookingService:
                 )
                 db.add(booking_item)
                 
-            # Todo: Xử lý logic Voucher ở đây nếu payload.voucher_code có gía trị
+            # Xử lý logic Voucher
             discount = 0
+            if voucher:
+                if voucher.discount_type == "percentage":
+                    discount = float(subtotal) * (float(voucher.discount_value) / 100)
+                    if voucher.max_discount_amount:
+                        discount = min(discount, float(voucher.max_discount_amount))
+                else:
+                    discount = float(voucher.discount_value)
+                
+                # Trừ số lượng voucher
+                voucher.remaining_quantity -= 1
+                
+                # Tạo bản ghi sử dụng voucher
+                redemption = VoucherRedemption(
+                    voucher_id=voucher.id,
+                    user_id=user_id,
+                    booking_id=booking.id,
+                    discount_applied=discount
+                )
+                db.add(redemption)
             
             booking.subtotal = subtotal
             booking.discount_amount = discount
-            booking.total_amount = subtotal - discount
+            booking.total_amount = max(0, subtotal - discount)
             booking.status = BookingStatus.confirmed
             
             # Commit mọi thay đổi
