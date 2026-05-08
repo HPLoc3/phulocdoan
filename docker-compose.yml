@@ -1,63 +1,65 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  # ==========================================
-  # PostgreSQL Database
-  # ==========================================
-  postgres:
-    image: postgres:15-alpine
-    container_name: booking_postgres
-    restart: unless-stopped
+  db:
+    image: postgres:15
     environment:
-      POSTGRES_DB: concert_booking
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: password123
+      POSTGRES_DB: concert_booking
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Mount thư mục database vào để có thể tự động init schema nếu cần
-      - ./database:/docker-entrypoint-initdb.d
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d concert_booking"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/1_schema.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/2_seed.sql
+    restart: unless-stopped
 
-  # ==========================================
-  # Redis Cache & Lock
-  # ==========================================
   redis:
     image: redis:7-alpine
-    container_name: booking_redis
-    restart: unless-stopped
-    command: redis-server --save 60 1 --loglevel warning
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-  # ==========================================
-  # (Optional) pgAdmin for Database UI
-  # Có thể bật lên nếu cần xem data trực quan
-  # ==========================================
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: booking_pgadmin
     restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@geekup.vn
-      PGADMIN_DEFAULT_PASSWORD: password123
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
-      - "5050:80"
+      - "8000:8000"
+    environment:
+      POSTGRES_SERVER: db
+      REDIS_HOST: redis
     depends_on:
-      postgres:
-        condition: service_healthy
+      - db
+      - redis
+    restart: unless-stopped
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    restart: unless-stopped
+    volumes:
+      - ./admin/src:/app/src
+
+  user-web:
+    build:
+      context: ./user-web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+    volumes:
+      - ./user-web/src:/app/src
 
 volumes:
   postgres_data:

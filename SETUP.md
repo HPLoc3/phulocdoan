@@ -1,65 +1,54 @@
 # 🚀 Hướng dẫn Cài đặt & Khởi chạy (Setup Guide)
 
-Hệ thống Ticket Booking được chia làm 3 phần độc lập nhưng tương tác liền mạch với nhau:
-1. **Backend** (FastAPI + PostgreSQL + Redis)
-2. **Admin Dashboard** (React Refine - Quản trị hệ thống)
-3. **User Web** (Vite + Tailwind v4 - Dành cho khách hàng đặt vé)
+Hệ thống Ticket Booking được đóng gói hoàn toàn bằng Docker, giúp bạn khởi chạy nhanh chóng chỉ với 1 lệnh duy nhất!
+
+Hệ thống bao gồm 5 container độc lập:
+1. **db** (PostgreSQL 15)
+2. **redis** (Redis 7)
+3. **api** (FastAPI Backend)
+4. **admin** (React Refine Dashboard)
+5. **user-web** (React Vite Web App)
 
 ---
 
 ## 🛠️ Yêu cầu môi trường (Prerequisites)
-- **Docker & Docker Compose** (Để chạy Database & Redis)
-- **Python 3.10+** (Để chạy Backend)
-- **Node.js 18+** (Để chạy Frontend)
+- **Docker & Docker Compose** đã được cài đặt và đang chạy.
+- (Không bắt buộc) Python 3.10+ nếu muốn chạy script test.
 
 ---
 
-## 1. Khởi chạy Database & Redis (Hạ tầng)
+## 1. Khởi chạy toàn bộ hệ thống (All-in-one)
 Tại thư mục gốc của dự án, chạy lệnh:
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
-Lệnh này sẽ khởi tạo:
-- **PostgreSQL** ở cổng `5432`
-- **Redis** ở cổng `6379`
-- Tự động chạy script `database/schema.sql` và `database/seed.sql` để tạo bảng và nạp sẵn dữ liệu mẫu (Sự kiện, Hạng vé, Venue).
+*(Lần chạy đầu tiên sẽ tốn chút thời gian để build Docker images)*
+
+Sau khi chạy xong, hãy truy cập các đường link sau:
+- 🌐 **User Web (Mua vé):** [http://localhost:3000](http://localhost:3000)
+- 📊 **Admin Dashboard (Quản trị):** [http://localhost:5173](http://localhost:5173)
+- ⚙️ **Backend API Docs (Swagger):** [http://localhost:8000/docs](http://localhost:8000/docs)
+
+**Ghi chú:** Khi hệ thống khởi chạy, file `database/schema.sql` và `database/seed.sql` sẽ tự động tạo bảng và nạp sẵn dữ liệu mẫu (Sự kiện, Hạng vé, Venue).
 
 ---
 
-## 2. Khởi chạy Backend (FastAPI)
-Mở một Terminal mới, đi vào thư mục `backend/`:
-
-**Bước 2.1: Tạo môi trường ảo (Khuyên dùng)**
+## 🧪 2. Chạy Test Concurrency (Giả lập Flash Sale)
+Để chứng minh hệ thống không bị **Overselling** dưới tải cao, có một script test đã được chuẩn bị sẵn:
+1. Mở terminal, đi vào thư mục `backend/`
+2. Đảm bảo bạn đã cài thư viện: `pip install requests`
+3. Chạy lệnh:
 ```bash
-cd backend
-python -m venv venv
-source venv/bin/activate  # Trên Mac/Linux
-# .\venv\Scripts\activate # Trên Windows
+python test_concurrency.py
 ```
-
-**Bước 2.2: Cài đặt thư viện**
-```bash
-pip install -r requirements.txt
-```
-
-**Bước 2.3: Khởi chạy API Server**
-```bash
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-- **Swagger API Docs:** Truy cập [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-- API chạy thành công khi thấy dòng `Application startup complete`.
+Script sẽ bắn 100 Request mua vé đồng thời (như 1 vụ nổ Flash Sale). Bạn sẽ thấy Redis Lock và Database Row-level lock hoạt động cùng nhau để đảm bảo không một chiếc vé nào bị bán âm!
 
 ---
 
-## 3. Khởi chạy Admin Dashboard (React Refine)
-Mở một Terminal mới, đi vào thư mục `admin/`:
-```bash
-cd admin
-npm install
-npm run dev
-```
-- **Admin UI:** Truy cập [http://localhost:5173](http://localhost:5173)
-- Giao diện quản trị sẽ giúp bạn xem danh sách Sự kiện, tạo Sự kiện mới và theo dõi số lượng vé bán ra, lọc các đơn đặt vé (Bookings).
+## 🎨 Thông tin công nghệ cốt lõi
+- **Backend Lock Layers:** Redis Distributed Lock (lớp ngoài chắn bão) + PostgreSQL `SELECT FOR UPDATE` (lớp trong đảm bảo tính toàn vẹn). Cực kỳ an toàn cho hệ thống High Concurrency.
+- **Web Frontend:** Tailwind CSS v4, Framer Motion (Animation), SWR (Polling vé real-time).
+- **Admin Frontend:** Ant Design, Vite dedupe strategy.
 
 ---
 
