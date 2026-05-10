@@ -1,51 +1,182 @@
-# 🧪 Testing & Load Simulation
+# 🧪 Testing Guide
 
-Thư mục này chứa các kịch bản kiểm thử cho **Concert Ticket Booking Platform**. Đặc biệt là giả lập tình huống Flash Sale với High Concurrency.
+Hai loại test trong project:
 
-## 1. Concurrency / Race Condition Test
+| Loại | File pattern | Cần API chạy? | Cần DB seed? |
+|---|---|---|---|
+| **Unit** (logic thuần) | `test_security.py` | ❌ | ❌ |
+| **Integration** (HTTP) | `test_*_api.py` + `test_concurrency.py` | ✅ `localhost:8000` | ✅ `event_id=1` |
 
-File: `test_concurrency.py`
+Tất cả test integration được mark `@pytest.mark.integration` để có thể loại trừ khi cần (vd CI nhanh).
 
-### Mục đích
-Giả lập kịch bản khó nhất của bài toán bán vé: **Cạnh tranh đồng thời**.
-Kịch bản: Trong kho chỉ còn đúng **5 vé**, nhưng có **100 người dùng** cùng bấm nút "Đặt vé" tại chính xác cùng một phần nghìn giây.
+---
 
-### Kết quả mong đợi (Anti-Overselling)
-Nhờ vào 3 lớp phòng thủ (`Redis Distributed Lock` -> `DB Pessimistic Lock` -> `DB Constraint`), hệ thống phải đảm bảo:
-- Đúng 5 request đầu tiên lọt qua và lấy được 5 vé.
-- Các request đến sau (ngay cả khi gửi cùng lúc) sẽ bị từ chối với lỗi "Hết vé" (HTTP 400) hoặc "Hệ thống bận" do timeout khi đợi lock (HTTP 500/503).
-- **Tuyệt đối không có chuyện bán âm vé (Overselling).**
+## 1. Cách chạy
 
-### Cách chạy test
+### 1.1. Chạy trong Docker (khuyên dùng)
 
-> 💡 **Lưu ý**: Cần đảm bảo hệ thống `docker-compose` (Postgres + Redis) và FastAPI server đang chạy.
+API + DB + Redis đã được orchestrate sẵn — không cần cài Python local.
 
-1. Bật virtual environment:
-   ```bash
-   cd backend
-   source venv/bin/activate
-   ```
+```bash
+# Khởi chạy stack (nếu chưa)
+docker compose up -d
 
-2. Đặt lại số vé còn lại trong DB thành 5 (để test cho nhanh):
-   ```bash
-   docker exec booking_postgres psql -U admin -d concert_booking -c "UPDATE ticket_categories SET remaining_quantity = 5 WHERE id = 1;"
-   ```
+# Chạy toàn bộ test suite
+docker exec phulocdoan-api-1 sh -c "cd /app && API_URL=http://localhost:8000 pytest"
 
-3. Chạy script giả lập 100 requests đồng thời:
-   ```bash
-   python tests/test_concurrency.py
-   ```
+# Chỉ unit tests (không cần API/DB)
+docker exec phulocdoan-api-1 sh -c "cd /app && pytest -m 'not integration'"
 
-### Output Mẫu
+# Chỉ integration tests
+docker exec phulocdoan-api-1 sh -c "cd /app && API_URL=http://localhost:8000 pytest -m integration"
 
-```text
-🚀 Bắt đầu giả lập Flash Sale: Bắn 100 request cùng lúc!
+# Chạy 1 file
+docker exec phulocdoan-api-1 sh -c "cd /app && API_URL=http://localhost:8000 pytest tests/test_auth_api.py -v"
 
-⏱ Thời gian xử lý 100 requests: 3.11 giây
-
-📊 THỐNG KÊ MÃ LỖI:
-✅ Thành công (HTTP 201): 5 requests đã giành được vé
-❌ Hết vé (HTTP 400): 36 requests bị từ chối do hết vé
-⚠️ Khác (HTTP 500): 59 requests (Timeout do bị block ở cửa Redis Lock)
+# Chạy 1 test
+docker exec phulocdoan-api-1 sh -c "cd /app && API_URL=http://localhost:8000 pytest tests/test_auth_api.py::TestRegister::test_duplicate_email_rejected -v"
 ```
-*(Ghi chú: Mã HTTP 500 ở đây đến từ việc Redis từ chối cấp Lock do hết thời gian chờ `blocking_timeout=3` giây, ngăn chặn DB bị quá tải - đây là tính năng bảo vệ hệ thống hợp lệ)*.
+
+### 1.2. Chạy local (nếu đã có venv)
+
+```bash
+cd backend
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+# Đảm bảo API đang chạy ở localhost:8000 (qua docker compose)
+pytest                       # tất cả
+pytest -m 'not integration'  # chỉ unit
+pytest tests/test_security.py -v
+```
+
+> Có thể override URL: `API_URL=http://10.0.0.5:8000 pytest`.
+
+### 1.3. Concurrency / Flash-sale stress test
+
+File [test_concurrency.py](test_concurrency.py) là kịch bản tải nặng (100 request đồng thời) — không chạy trong suite chuẩn. Chạy thủ công:
+
+```bash
+# Reset tồn vé về 5 cho test thấy hiệu ứng overselling guard
+docker exec phulocdoan-db-1 psql -U admin -d concert_booking \
+  -c "UPDATE ticket_categories SET remaining_quantity = 5 WHERE id = 1;"
+
+docker exec phulocdoan-api-1 sh -c "cd /app && python tests/test_concurrency.py"
+```
+
+Mong đợi: đúng 5 request HTTP 201, phần còn lại bị `Hết vé (400)` hoặc `Server bận (503)` — không bao giờ overselling.
+
+---
+
+## 2. Cấu trúc
+
+```
+tests/
+├── conftest.py                       # Fixtures dùng chung (client, auth_headers, ...)
+├── test_security.py                  # Unit: password hashing + JWT
+├── test_auth_api.py                  # Integration: /auth/register|login|me
+├── test_ticket_categories_api.py     # Integration: /ticket-categories
+├── test_bookings_me_api.py           # Integration: /bookings/me
+└── test_concurrency.py               # Stress test (chạy thủ công)
+```
+
+### Fixtures sẵn có trong [conftest.py](conftest.py)
+
+| Fixture | Phạm vi | Trả về |
+|---|---|---|
+| `api_url` | session | `http://127.0.0.1:8000/api/v1` (override `API_URL`) |
+| `client` | function | `httpx.AsyncClient` đã set base_url |
+| `unique_email` | function | email random `pytest-<uuid>@example.com` |
+| `auth_headers` | function | `{"Authorization": "Bearer ..."}` của user vừa register |
+
+---
+
+## 3. Convention thêm test mới
+
+### 3.1. Đặt tên
+
+| Loại | Pattern | Ví dụ |
+|---|---|---|
+| Unit | `test_<module>.py` | `test_security.py` |
+| Integration | `test_<feature>_api.py` | `test_voucher_api.py` |
+
+Class group theo verb / endpoint group: `TestRegister`, `TestUpdate`, ... Hàm test: `test_<scenario>` (`test_duplicate_email_rejected`, `test_zero_quantity_rejected`).
+
+### 3.2. Template Integration test
+
+```python
+"""Integration tests for /api/v1/<feature> — requires running API."""
+import pytest
+
+pytestmark = pytest.mark.integration
+
+
+class TestSomething:
+    async def test_happy_path(self, client, auth_headers):
+        res = await client.post(
+            "/your-endpoint",
+            headers=auth_headers,
+            json={"foo": "bar"},
+        )
+        assert res.status_code == 201
+        assert res.json()["foo"] == "bar"
+
+    async def test_unauthorized(self, client):
+        res = await client.post("/your-endpoint", json={"foo": "bar"})
+        assert res.status_code == 401
+```
+
+Dùng `pytestmark = pytest.mark.integration` ở đầu module — toàn bộ test trong file sẽ tự inherit marker.
+
+### 3.3. Template Unit test
+
+```python
+"""Unit tests for app.<module> — no DB/network."""
+from app.your.module import some_function
+
+
+class TestSomeFunction:
+    def test_returns_expected_value(self):
+        assert some_function(1) == 2
+
+    def test_raises_on_invalid_input(self):
+        import pytest
+        with pytest.raises(ValueError):
+            some_function(-1)
+```
+
+### 3.4. Quy tắc
+
+- **Không hardcode user_id** — luôn dùng `auth_headers` fixture (tự register user mới mỗi test).
+- **Không phụ thuộc thứ tự** — mỗi test phải tự setup state cần thiết.
+- **Cleanup khi tạo resource bền** — vd tạo `ticket_category` xong nhớ `DELETE` ở cuối; nếu skip cleanup thì dữ liệu rác sẽ tích trong DB seed.
+- **Email phải hợp lệ với `email-validator`** — tránh TLD giả như `.test`/`.invalid`. Dùng `@example.com`.
+- **Idempotency key** — mỗi POST /bookings/ phải dùng UUID khác nhau (`uuid.uuid4()`), kể cả trong cùng test.
+- **Skip nếu seed dependency thiếu** — vd booking test cần `event_id=1` còn vé; nếu hết, dùng `pytest.skip(...)` thay vì fail.
+
+### 3.5. Cấu hình
+
+`pytest.ini` ở [backend/pytest.ini](../pytest.ini):
+
+```ini
+[pytest]
+asyncio_mode = auto         # async test/fixture không cần decorator
+testpaths = tests
+pythonpath = .              # cho phép `from app.xxx import ...`
+markers =
+    integration: requires running API at API_URL
+```
+
+Đổi base URL bằng env var `API_URL` (mặc định `http://127.0.0.1:8000`).
+
+---
+
+## 4. Troubleshooting
+
+| Lỗi | Nguyên nhân | Fix |
+|---|---|---|
+| `ConnectionRefused` | API chưa chạy | `docker compose up -d` |
+| `ModuleNotFoundError: app` | PYTHONPATH chưa set | Đảm bảo `pythonpath = .` trong `pytest.ini`, hoặc chạy từ thư mục `backend/` |
+| `422` thay vì `401` ở login | Pydantic reject email format trước khi vào handler | Dùng email hợp lệ kiểu `@example.com` |
+| Booking test bị skip | Hết vé seed | Reset DB: xoá volume `phulocdoan_postgres_data` rồi `docker compose up -d` |
+| Tests pass local nhưng fail trong container | Code thay đổi chưa được build vào image | `docker compose build api && docker compose up -d api` |
