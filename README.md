@@ -108,7 +108,7 @@ Bạn được thuê làm **Software Engineer** để thiết kế và triển k
 | Coding guideline | Convention, cách tạo API mới, cách chạy unit test |
 | Setup guide | Hướng dẫn cài đặt & chạy local |
 | API docs | Tài liệu API (có thể dùng Swagger) |
-| API testing | Collection test (Postman) — phải hoạt động với local setup |
+| API testing | Swagger UI tại `/docs` — "Try it out" chạy được mọi endpoint với local setup |
 
 ### 3. Tài liệu Assumptions & Scope
 

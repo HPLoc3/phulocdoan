@@ -11,7 +11,8 @@
 │                   CLIENT LAYER                   │
 │                                                  │
 │   React + Refine (Operation Dashboard)           │
-│   + Any frontend / Postman (Customer API)        │
+│   React Vite + SWR (Customer Web)                │
+│   Swagger UI / curl (API testing)                │
 └──────────────────┬───────────────────────────────┘
                    │ HTTP / REST
 ┌──────────────────▼───────────────────────────────┐
@@ -28,8 +29,8 @@
 │                  │  │                            │
 │  PostgreSQL      │  │  Redis                     │
 │  + SQLAlchemy 2  │  │  ├── Distributed Lock      │
-│  + Alembic       │  │  ├── Reservation TTL       │
-│                  │  │  └── Rate Limiting          │
+│  (schema.sql     │  │  ├── Idempotency Cache     │
+│   auto-init)     │  │  └── Reservation TTL       │
 └──────────────────┘  └───────────────────────────┘
 ```
 
@@ -99,7 +100,7 @@ Clean architecture: DB session, auth, Redis client được inject vào endpoint
 | **Engine** | PostgreSQL 15+ |
 | **Driver** | `asyncpg` (async, C-based, nhanh nhất cho Python) |
 | **ORM** | SQLAlchemy 2.x (async mode) |
-| **Migration** | Alembic |
+| **Schema init** | `database/schema.sql` + `seed.sql` auto-load qua docker-entrypoint (bài này không dùng Alembic migration) |
 
 ### Tại sao PostgreSQL?
 
@@ -289,9 +290,9 @@ Request đặt vé
 
 | Tool | Mục đích |
 |------|----------|
-| `pytest` + `pytest-asyncio` | Unit test & integration test cho async code |
-| `httpx` (AsyncClient) | Test FastAPI endpoints không cần chạy server |
-| Postman Collection | API testing collection (export từ Swagger) |
+| `pytest` + `pytest-asyncio` | Unit test & integration test cho async code (đã cài, chưa dùng trong scope 48h) |
+| `httpx` (AsyncClient) | Dùng cho `tests/test_concurrency.py` — bắn 100 request đồng thời để verify chống Oversell |
+| Swagger UI (`/docs`) | API testing interface — auto-generate từ Pydantic, thay cho Postman collection |
 
 ```python
 # Ví dụ test chống overselling
@@ -367,11 +368,11 @@ services:
 ```
 
 ```bash
-# Quick start
-docker-compose up -d          # Start PostgreSQL + Redis
-pip install -r requirements.txt
-alembic upgrade head          # Run migrations
-uvicorn app.main:app --reload # Start API server
+# Quick start (toàn bộ stack: db + redis + api + admin + user-web)
+docker-compose up -d --build
+
+# Schema + seed được auto-load từ database/*.sql qua docker-entrypoint
+# Xem chi tiết tại SETUP.md
 ```
 
 ---

@@ -42,12 +42,14 @@ Dựa trên nguyên tắc MVP (Minimum Viable Product), dưới đây là các q
 - **Containerization:** Toàn bộ hệ thống chạy với 1 lệnh duy nhất `docker-compose up --build`, sẵn sàng cho đánh giá.
 
 ### ⚠️ Assumptions (Các giả định)
-- **Mock Authentication:** Để đơn giản hoá quy trình test, hệ thống hiện tại giả định user luôn là ID `1` (`customer1@gmail.com`). Trong thực tế, hệ thống sẽ được gắn JWT Middleware.
+- **Mock Authentication:** Để đơn giản hoá quy trình test, hệ thống hardcode `user_id = 3` (= `customer1@gmail.com` trong seed) cho mọi booking request. Trong thực tế, sẽ được thay bằng JWT Middleware lấy `user_id` từ access token.
 - **Payment Gateway:** Quá trình thanh toán được giả định là thành công ngay khi trừ vé (Trạng thái chuyển sang `confirmed` / `paid`). Trong thực tế, luồng này sẽ bao gồm trạng thái `payment_pending`, giữ vé (reserve) trong 15 phút, nếu Cổng thanh toán (Momo/VNPay) trả về lỗi thì nhả vé lại kho.
 
 ### ❌ What I have NOT done (Những gì chưa làm)
 - **Role-Based Access Control (RBAC):** Admin dashboard mở hoàn toàn, chưa tích hợp chặn quyền phân mảnh User/Admin.
 - **Unit Tests coverage:** Mới chỉ cung cấp Integration Script để test Concurrency, chưa phủ Unit tests (PyTest) cho mọi hàm nhỏ trong hệ thống do giới hạn thời gian (48h).
+- **Voucher CRUD endpoint cho Admin:** Voucher hiện được seed sẵn trong `database/seed.sql` và có logic apply khi đặt vé (kèm `SELECT FOR UPDATE` chống abuse). Chưa expose API/UI cho operator tạo–sửa–xoá voucher campaign — đây là scope chấp nhận được theo hướng dẫn trong đề bài ("*just seeding vouchers data and making sure customers can apply that voucher*").
+- **Postman collection:** Đề bài yêu cầu API testing collection nhưng cho phép thay thế. Mình dùng **Swagger UI** (`/docs`) làm test interface — Swagger được FastAPI auto-generate từ Pydantic schema, luôn đồng bộ với code thật nên không phải maintain thêm Postman file. Chi tiết cách test xem [SETUP.md mục 2](SETUP.md).
 
 ---
 
