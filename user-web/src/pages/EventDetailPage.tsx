@@ -1,15 +1,20 @@
-import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import useSWR from "swr";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, MapPin, CheckCircle2, AlertCircle, Ticket, Loader2, Star } from "lucide-react";
+import { useAuth } from "../auth/AuthContext";
+import { apiFetch, ApiError } from "../lib/api";
 
 export const EventDetailPage = () => {
   const { id } = useParams();
-  
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
+
   // Polling every 2s for flash sale updates
   const { data: event, error, mutate } = useSWR(`http://127.0.0.1:8000/api/v1/events/${id}`, { refreshInterval: 2000 });
-  
+
   const [selectedTickets, setSelectedTickets] = useState<Record<number, number>>({});
   const [isBooking, setIsBooking] = useState(false);
   const [bookingResult, setBookingResult] = useState<{success: boolean, message: string} | null>(null);
@@ -30,39 +35,41 @@ export const EventDetailPage = () => {
 
   const handleBook = async () => {
     if (totalSelected === 0) return;
-    
+
+    if (!isAuthenticated) {
+      navigate("/login", { state: { from: location.pathname } });
+      return;
+    }
+
     setIsBooking(true);
     setBookingResult(null);
 
     const items = Object.entries(selectedTickets)
-      .filter(([_, qty]) => qty > 0)
+      .filter(([, qty]) => qty > 0)
       .map(([catId, qty]) => ({
         ticket_category_id: parseInt(catId),
-        quantity: qty
+        quantity: qty,
       }));
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/v1/bookings/", {
+      const data = await apiFetch<{ id: number }>("/bookings/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event_id: parseInt(id!),
           idempotency_key: crypto.randomUUID(),
-          items: items
-        })
+          items,
+        }),
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setBookingResult({ success: true, message: `Thành công! Mã đơn hàng: #${data.id}` });
-        setSelectedTickets({});
-        mutate(); // Cập nhật lại số vé ngay
-      } else {
-        setBookingResult({ success: false, message: data.detail || "Có lỗi xảy ra" });
-      }
+      setBookingResult({ success: true, message: `Thành công! Mã đơn hàng: #${data.id}` });
+      setSelectedTickets({});
+      mutate();
     } catch (err) {
-      setBookingResult({ success: false, message: "Lỗi kết nối mạng" });
+      if (err instanceof ApiError && err.status === 401) {
+        navigate("/login", { state: { from: location.pathname } });
+        return;
+      }
+      const message = err instanceof ApiError ? err.message : "Lỗi kết nối mạng";
+      setBookingResult({ success: false, message });
     } finally {
       setIsBooking(false);
     }

@@ -6,14 +6,12 @@ from typing import List
 
 from app.db.database import get_db
 from app.models.booking import Booking
+from app.models.user import User
 from app.schemas.booking import BookingCreate, BookingResponse
 from app.services.booking_service import BookingService
+from app.core.deps import get_current_user
 
 router = APIRouter()
-
-# Tạm thời hardcode user_id vì chưa làm phần auth middleware hoàn chỉnh
-async def get_current_user_id() -> int:
-    return 3
 
 from fastapi import Query
 
@@ -95,15 +93,16 @@ async def get_booking(booking_id: int, db: AsyncSession = Depends(get_db)):
 async def create_booking(
     payload: BookingCreate,
     db: AsyncSession = Depends(get_db),
-    user_id: int = Depends(get_current_user_id)
+    current_user: User = Depends(get_current_user),
 ):
     """
     API đặt vé (Booking)
+    - Yêu cầu Authorization: Bearer <token>
     - Yêu cầu truyền `idempotency_key` (UUID)
     - Xử lý lock nhiều tầng để chống overselling
     """
     try:
-        booking = await BookingService.create_booking(db=db, user_id=user_id, payload=payload)
+        booking = await BookingService.create_booking(db=db, user_id=current_user.id, payload=payload)
         return booking
     except HTTPException as e:
         raise e

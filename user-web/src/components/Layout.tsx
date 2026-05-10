@@ -1,8 +1,10 @@
-import React from "react";
 import { Outlet, Link } from "react-router-dom";
-import { Ticket } from "lucide-react";
+import { LogOut, Ticket, User as UserIcon } from "lucide-react";
+import { useAuth } from "../auth/AuthContext";
 
 export const Layout = () => {
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
+
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden bg-[var(--color-dark-bg)]">
       {/* Background gradients */}
@@ -20,8 +22,31 @@ export const Layout = () => {
           </Link>
 
           <div className="flex items-center gap-4 ml-auto">
-            <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Log in</Link>
-            <Link to="/register" className="text-sm font-bold bg-white text-black px-5 py-2.5 rounded-full hover:bg-gray-200 transition-colors">Sign up</Link>
+            {isLoading ? (
+              <div className="h-8 w-32 rounded-full bg-white/5 animate-pulse" />
+            ) : isAuthenticated && user ? (
+              <>
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-orange-500 flex items-center justify-center text-white">
+                    <UserIcon size={14} />
+                  </div>
+                  <span className="text-sm font-medium text-white">{user.full_name}</span>
+                </div>
+                <button
+                  onClick={logout}
+                  className="text-sm font-medium text-gray-300 hover:text-white transition-colors flex items-center gap-1"
+                  title="Logout"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm font-medium text-gray-300 hover:text-white transition-colors">Log in</Link>
+                <Link to="/register" className="text-sm font-bold bg-white text-black px-5 py-2.5 rounded-full hover:bg-gray-200 transition-colors">Sign up</Link>
+              </>
+            )}
           </div>
         </div>
       </header>

@@ -5,13 +5,32 @@ from app.models.event import EventStatus
 
 class TicketCategoryResponse(BaseModel):
     id: int
+    event_id: int
     name: str
+    description: Optional[str] = None
     price: float
     total_quantity: int
     remaining_quantity: int
-    
+    max_per_booking: int
+
     class Config:
         from_attributes = True
+
+
+class TicketCategoryCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    price: float
+    total_quantity: int
+    max_per_booking: int = 5
+
+
+class TicketCategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    total_quantity: Optional[int] = None
+    max_per_booking: Optional[int] = None
 
 class EventResponse(BaseModel):
     id: int
