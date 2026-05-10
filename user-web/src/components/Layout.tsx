@@ -1,4 +1,4 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, NavLink } from "react-router-dom";
 import { LogOut, Ticket, User as UserIcon } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 
@@ -26,6 +26,19 @@ export const Layout = () => {
               <div className="h-8 w-32 rounded-full bg-white/5 animate-pulse" />
             ) : isAuthenticated && user ? (
               <>
+                <NavLink
+                  to="/my-tickets"
+                  className={({ isActive }) =>
+                    `inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-full transition-colors ${
+                      isActive
+                        ? "bg-[var(--color-primary)]/20 text-[var(--color-primary)]"
+                        : "text-gray-300 hover:text-white"
+                    }`
+                  }
+                >
+                  <Ticket size={16} />
+                  Vé của tôi
+                </NavLink>
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-orange-500 flex items-center justify-center text-white">
                     <UserIcon size={14} />

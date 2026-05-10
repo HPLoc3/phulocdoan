@@ -5,9 +5,15 @@ from sqlalchemy import func
 from typing import List
 
 from app.db.database import get_db
-from app.models.booking import Booking
+from app.models.booking import Booking, BookingItem
+from app.models.event import TicketCategory
 from app.models.user import User
-from app.schemas.booking import BookingCreate, BookingResponse
+from app.schemas.booking import (
+    BookingCreate,
+    BookingResponse,
+    MyBookingResponse,
+    BookingItemResponse,
+)
 from app.services.booking_service import BookingService
 from app.core.deps import get_current_user
 
@@ -77,16 +83,69 @@ async def get_bookings(
     
     return bookings
 
+@router.get("/me", response_model=List[MyBookingResponse])
+async def get_my_bookings(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lấy danh sách booking của user hiện tại (kèm items + event)"""
+    from sqlalchemy.orm import selectinload
+
+    stmt = (
+        select(Booking)
+        .where(Booking.user_id == current_user.id)
+        .options(selectinload(Booking.items), selectinload(Booking.event))
+        .order_by(Booking.created_at.desc())
+    )
+    result = await db.execute(stmt)
+    bookings = result.scalars().all()
+
+    # Lấy tên ticket category cho từng item (1 query batch)
+    cat_ids = {item.ticket_category_id for b in bookings for item in b.items}
+    cat_map: dict[int, str] = {}
+    if cat_ids:
+        cat_stmt = select(TicketCategory.id, TicketCategory.name).where(TicketCategory.id.in_(cat_ids))
+        cat_rows = await db.execute(cat_stmt)
+        cat_map = {row.id: row.name for row in cat_rows}
+
+    return [
+        MyBookingResponse(
+            id=b.id,
+            event_id=b.event_id,
+            event_title=b.event.title if b.event else None,
+            event_date=b.event.event_date if b.event else None,
+            status=b.status,
+            subtotal=float(b.subtotal),
+            discount_amount=float(b.discount_amount),
+            total_amount=float(b.total_amount),
+            expires_at=b.expires_at,
+            created_at=b.created_at,
+            items=[
+                BookingItemResponse(
+                    id=item.id,
+                    ticket_category_id=item.ticket_category_id,
+                    ticket_category_name=cat_map.get(item.ticket_category_id),
+                    quantity=item.quantity,
+                    unit_price=float(item.unit_price),
+                    line_total=float(item.line_total),
+                )
+                for item in b.items
+            ],
+        )
+        for b in bookings
+    ]
+
+
 @router.get("/{booking_id}", response_model=BookingResponse)
 async def get_booking(booking_id: int, db: AsyncSession = Depends(get_db)):
     """Lấy chi tiết 1 Booking"""
     stmt = select(Booking).where(Booking.id == booking_id)
     result = await db.execute(stmt)
     booking = result.scalar_one_or_none()
-    
+
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
-        
+
     return booking
 
 @router.post("/", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)

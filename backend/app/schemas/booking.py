@@ -26,6 +26,35 @@ class BookingResponse(BaseModel):
     total_amount: float
     expires_at: Optional[datetime]
     created_at: datetime
-    
+
+    class Config:
+        from_attributes = True
+
+
+class BookingItemResponse(BaseModel):
+    id: int
+    ticket_category_id: int
+    ticket_category_name: Optional[str] = None
+    quantity: int
+    unit_price: float
+    line_total: float
+
+    class Config:
+        from_attributes = True
+
+
+class MyBookingResponse(BaseModel):
+    id: int
+    event_id: int
+    event_title: Optional[str] = None
+    event_date: Optional[datetime] = None
+    status: BookingStatus
+    subtotal: float
+    discount_amount: float
+    total_amount: float
+    expires_at: Optional[datetime]
+    created_at: datetime
+    items: List[BookingItemResponse] = []
+
     class Config:
         from_attributes = True

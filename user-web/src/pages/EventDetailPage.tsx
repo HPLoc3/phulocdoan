@@ -191,7 +191,18 @@ export const EventDetailPage = () => {
               className={`p-4 rounded-xl flex items-start gap-3 ${bookingResult.success ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}
             >
               {bookingResult.success ? <CheckCircle2 className="shrink-0" /> : <AlertCircle className="shrink-0" />}
-              <p className="text-sm font-medium">{bookingResult.message}</p>
+              <div className="text-sm font-medium">
+                <p>{bookingResult.message}</p>
+                {bookingResult.success && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/my-tickets")}
+                    className="mt-1 underline text-green-300 hover:text-green-200"
+                  >
+                    Xem vé của tôi →
+                  </button>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
