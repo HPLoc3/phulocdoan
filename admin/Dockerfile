@@ -1,4 +1,4 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -11,4 +11,4 @@ COPY . .
 EXPOSE 5173
 
 # Run vite with host 0.0.0.0 to be accessible from outside container
-CMD ["npm", "run", "dev", "--", "--host"]
+CMD ["npx", "vite", "--host"]
