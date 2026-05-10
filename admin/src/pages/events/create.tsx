@@ -1,5 +1,5 @@
 import { Create, useForm, useSelect } from "@refinedev/antd";
-import { Form, Input, Select, DatePicker, Switch } from "antd";
+import { Alert, Form, Input, Select, DatePicker, Switch } from "antd";
 
 export const EventCreate = () => {
     const { formProps, saveButtonProps } = useForm({});
@@ -12,6 +12,12 @@ export const EventCreate = () => {
 
     return (
         <Create saveButtonProps={saveButtonProps}>
+            <Alert
+                style={{ marginBottom: 16 }}
+                type="info"
+                showIcon
+                message="Lưu sự kiện trước, sau đó mở lại để thêm Loại vé / Chỗ ngồi."
+            />
             <Form {...formProps} layout="vertical">
                 <Form.Item
                     label="Tên sự kiện"

@@ -1,6 +1,7 @@
 import { Edit, useForm, useSelect } from "@refinedev/antd";
 import { Form, Input, Select, DatePicker, Switch } from "antd";
 import dayjs from "dayjs";
+import { TicketCategoriesSection } from "../../components/TicketCategoriesSection";
 
 export const EventEdit = () => {
     const { formProps, saveButtonProps, queryResult } = useForm({});
@@ -68,6 +69,10 @@ export const EventEdit = () => {
                     <Switch />
                 </Form.Item>
             </Form>
+
+            {eventData?.id ? (
+                <TicketCategoriesSection eventId={Number(eventData.id)} />
+            ) : null}
         </Edit>
     );
 };
