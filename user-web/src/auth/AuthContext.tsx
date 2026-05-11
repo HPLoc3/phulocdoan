@@ -15,6 +15,7 @@ type AuthState = {
   login: (email: string, password: string) => Promise<void>;
   register: (input: { email: string; password: string; full_name: string; phone?: string }) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -64,9 +65,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const u = await apiFetch<User>("/auth/me");
+      setUser(u);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, isAuthenticated: !!user, login, register, logout }}
+      value={{ user, isLoading, isAuthenticated: !!user, login, register, logout, refreshUser }}
     >
       {children}
     </AuthContext.Provider>

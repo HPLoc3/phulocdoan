@@ -1,0 +1,119 @@
+P R O D U C T  B A C K E N D  E N G I N E E R  T E S T  
+T h i n g s  t o  k e e p  i n  m i n d  
+R e s u l t s  m u s t  b e  s u b m i t t e d  w i t h i n  t h e  t i m e  f r a m e  ( 4 8  h o u r s )  y o u  h a v e  i n f o r m e d .  I n  c a s e  o f  a n y  c h a n g e  i n
+t e s t  t i m e  f r a m e ,  t h e  n e w  t i m e f r a m e  m u s t  b e  u p d a t e d  a s  s o o n  a s  p o s s i b l e  a n d  m u s t  s t i l l  b e  w i t h i n  h o u r s  o f
+r e c e i v i n g  t h e  1 s t  e m a i l .
+Y o u  m a y  u s e  G o o g l e ,  A I  t o o l s ,  o r  a n y  o n l i n e  r e s o u r c e s  d u r i n g  t h e  a s s i g n m e n t .  H o w e v e r ,  y o u  m u s t  f u l l y
+u n d e r s t a n d  a n d  b e  a b l e  t o  e x p l a i n  e v e r y  t e c h n i c a l  d e c i s i o n  i n  y o u r  s u b m i s s i o n .  W e  a r e  m o r e  i n t e r e s t e d  i n
+y o u r  e n g i n e e r i n g  t h i n k i n g  a n d  t r a d e - o f f  d e c i s i o n s  t h a n  b u i l d i n g  m a n y  f e a t u r e s .  
+Y o u  c a n  u s e  a n y  t e c h n o l o g i e s  i f  y o u  t h i n k  t h e y  a r e  n e c e s s a r y  f o r  y o u r  s y s t e m .  
+M o r e  a b o u t  u s :  
+●  G E E K  U p  b u s i n e s s :  h t t p s : / / g e e k u p . v n  
+●  G E E K  U p  e n v i r o n m e n t :  h t t p s : / / w w w . f a c e b o o k . c o m / G E E K U p A d v e n t u r e  
+T e s t  r e s u l t  n o t e  
+P l e a s e  u p l o a d  a l l  o f  r e s u l t  i n t o  1  f o l d e r  a n d  s u b m i t  v i a  L i n k  ( E m a i l )R E S P O N S I B I L I T I E S  &  R E Q U I R E M E N T S :  
+1. Business Context:  
+A  s t a r t u p  i s  p r e p a r i n g  t o  l a u n c h  a n  o n l i n e  C o n c e r t  T i c k e t  B o o k i n g  P l a t f o r m .  
+T h e  p l a t f o r m  a l l o w s  u s e r s  t o :  
+●
+●
+●
+●
+●  
+B r o w s e  c o n c e r t s  
+V i e w  t i c k e t  c a t e g o r i e s  a n d  p r i c e s
+R e s e r v e  t i c k e t s  
+A p p l y  p r o m o t i o n a l  v o u c h e r s
+T r a c k  b o o k i n g  s t a t u s  
+T o  s u p p o r t  d a i l y  o p e r a t i o n s ,  t h e  s t a r t u p  a l s o  n e e d s  a n  i n t e r n a l  O p e r a t i o n  D a s h b o a r d  f o r  o p e r a t o r s  a n d
+a d m i n i s t r a t o r s .  
+T h e  O p e r a t i o n  D a s h b o a r d  h e l p s  t h e  o p e r a t i o n  t e a m :  
+●
+●
+●
+●
+●
+●  
+M o n i t o r  b o o k i n g s  
+M a n a g e  /  p u b l i s h  n e w  c o n c e r t s ’  t i c k e t s  
+V a l i d a t e  t i c k e t  a v a i l a b i l i t y  
+M a n a g e  v o u c h e r  c a m p a i g n s  
+H a n d l e  f a i l e d  o r  s u s p i c i o u s  b o o k i n g s  
+U p d a t e  b o o k i n g  s t a t u s  m a n u a l l y  w h e n  n e c e s s a r y  3. Requirement  
+Y o u  a r e  h i r e d  a s  a  S o f t w a r e  E n g i n e e r  t o  h e l p  d e s i g n  a n d  i m p l e m e n t  a  s i m p l e  b a c k e n d  s y s t e m  f o r  b o t h :  
+2. Business Expectation  
+T o  a t t r a c t  u s e r s  d u r i n g  l a u n c h  w e e k ,  t h e  s t a r t u p  w i l l  r u n  a  F l a s h  S a l e  C a m p a i g n  f o r  a  h i g h l y  a n t i c i p a t e d  c o n c e r t
+e v e n t .  
+E x p e c t e d  t r a f f i c :  
+●
+●  
+C u s t o m e r - f a c i n g  b o o k i n g  f l o w s
+I n t e r n a l  o p e r a t i o n  w o r k f l o w s  
+Y o u r  j o b  i s :  
+-
+-
+-  
+D e s i g n  a n  a r c h i t e c t u r e  f o r  t h i s  C o n c e r t  T i c k e t  B o o k i n g  P l a t f o r m .
+S e t u p  &  i m p l e m e n t  t h e  c o d e b a s e  t h a t  r e f l e c t s  t h e  a r c h i t e c t u r e
+P r o v i d e  B a c k e n d  A P I s  f o r  b o t h :  
+-
+-  
+C u s t o m e r - f a c i n g  b o o k i n g  f l o w s
+I n t e r n a l  o p e r a t i o n  w o r k f l o w s  
+-  
+●
+●  
+A r o u n d  5 0 , 0 0 0  u s e r s  
+P e a k  t r a f f i c  a p p r o x i m a t e l y  3 0 0 – 5 0 0  b o o k i n g  r e q u e s t s  p e r  m i n u t e  
+E a c h  c o n c e r t  e v e n t  h a s :  
+●
+●
+●  
+L i m i t e d  t i c k e t  q u a n t i t y  
+M u l t i p l e  t i c k e t  c a t e g o r i e s  ( V I P ,  S t a n d a r d ,  e t c . )
+L i m i t e d  p r o m o t i o n a l  v o u c h e r s  
+T h e  s t a r t u p  i s  c o n c e r n e d  a b o u t :  
+O v e r s e l l i n g  t i c k e t s  
+D u p l i c a t e  b o o k i n g s  c a u s e d  b y  r e t r i e s  
+U s e r s  a b u s i n g  p r o m o t i o n a l  v o u c h e r s  
+S y s t e m  i n s t a b i l i t y  d u r i n g  f l a s h  s a l e  t r a f f i c  s p i k e s  
+●
+●
+●
+●
+●  Y o u  s h o u l d  s e n d  b a c k  t o  u s :  
+-  D o c u m e n t s  t h a t  r e l a t e d  t o  S y s t e m  /  D a t a b a s e  D e s i g n ,  i n c l u d i n g  y o u r  a n a l y t i c s  &  e x p l a n a t i o n  a b o u t  y o u r
+d e s i g n  
+Y o u r  c o d e b a s e ,  i n c l u d i n g :  
+-  
+-
+-
+-
+-
+-  
+S o u r c e  c o d e  
+C o d i n g  g u i d e l i n e  &  c o n v e n t i o n  ( h o w  t o  c o d e  a  n e w  A P I ,  h o w  t o  r u n  u n i t  t e s t )  
+H o w  t o  s e t u p  &  r u n  y o u r  c o d e b a s e  i n  l o c a l  
+A P I  d o c u m e n t s  ( e x :  y o u  c a n  u s e  S w a g g e r )  
+A P I  t e s t i n g  c o l l e c t i o n s  ( e x :  y o u  c a n  u s e  P o s t m a n )  –  i t  s h o u l d  w o r k  w i t h  t h e  l o c a l  s e t u p  
+-  D o c u m e n t s  t h a t  d e s c r i b e  y o u r  a s s u m p t i o n s  /  w h a t  y o u  h a v e  d o n e  /  w h a t  y o u  h a v e  n o t  d o n e  f o r
+f e a t u r e s  &  s c o p e  o f  f e a t u r e s  t h a t  y o u r  s y s t e m  i s  s e r v i n g  /  n o t  s e r v i n g  ( l i m i t a t i o n ) ,  f o r  e x a m p l e :  
+-  Y o u  a s s u m e  t h a t  y o u r  b o o k i n g  t i c k e t  w i l l  h a v e  4  s t a t e s  ( r e c e i v e d ,  w a i t i n g  f o r  p a y m e n t ,  c o m p l e t e
+p a y m e n t ,  … )  s o  y o u  w i l l  i m p l e m e n t  a n  A P I  t o  s u p p o r t  c h a n g e  o r d e r  s t a t u s  w i t h i n  t h e s e  4  s t a t e s .  Y o u r
+s y s t e m  s u p p o r t s  o p e r a t i o n  t e a m  t o  c r e a t e  v o u c h e r s ,  b u t  d o e s  n o t  s u p p o r t  u p d a t e  v o u c h e r s ’
+i n f o r m a t i o n  o r  d e l e t e  v o u c h e r s ,  . . .  
+Y o u  c a n  e v e n  n o t  s e r v e  A P I s  f o r  c r e a t e / u p d a t e / d e l e t e  v o u c h e r s  f r o m  t h e  o p e r a t i o n  d a s h b o a r d ,  j u s t
+s e e d i n g  v o u c h e r s  d a t a  a n d  m a k i n g  s u r e  c u s t o m e r s  c a n  a p p l y  t h a t  v o u c h e r  w h e n  c r e a t i n g  a n  o r d e r .  
+-  
+-  
+Y o u  a r e  N O T  e x p e c t e d  t o  b u i l d  a  p r o d u c t i o n - r e a d y  s y s t e m
+I n s t e a d ,  w e  w a n t  t o  u n d e r s t a n d :  
+-
+-
+-  
+H o w  y o u  t h i n k  a b o u t  b a c k e n d  d e s i g n  
+H o w  y o u  s t r u c t u r e  y o u r  c o d e  
+H o w  y o u  r e a s o n  a b o u t  p o s s i b l e  i s s u e s  a n d  w o r k f l o w s  i n  t h e  s y s t e m  
+A l l  e x a m p l e s  a b o v e  j u s t  e m p h a s i z e  t h a t  y o u  s h o u l d  k n o w  h o w  t o  d e f i n e  t h e  s c o p e  o f  t h e  f e a t u r e s  t h a t  y o u r  s y s t e m
+w i l l  s e r v e ,  a n d  t h a t  y o u ’ l l  h a v e  s u f f i c i e n t  t i m e  t o  p r o d u c e  t h e  b e s t  o u t p u t .  S o  p l e a s e  t a k e  y o u r  t i m e  t o  t h i n k  c a r e f u l l y
+a b o u t  w h a t  y o u  s h o u l d  p r i o r i t i z e  t o  b u i l d  f i r s t  i n  o r d e r  t o  d e l i v e r  t h e  g r e a t e s t  v a l u e  t o  t h e  b u s i n e s s .  

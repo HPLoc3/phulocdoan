@@ -5,7 +5,9 @@ import { HomePage } from "./pages/HomePage";
 import { EventDetailPage } from "./pages/EventDetailPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { MyTicketsPage } from "./pages/MyTicketsPage";
+import { ProfilePage } from "./pages/ProfilePage";
 import { AuthProvider } from "./auth/AuthContext";
 
 // Global fetcher for SWR
@@ -22,7 +24,9 @@ function App() {
               <Route path="/events/:id" element={<EventDetailPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/my-tickets" element={<MyTicketsPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Route>
           </Routes>
         </BrowserRouter>
