@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, UUID4
 from typing import List, Optional
 from datetime import datetime
-from app.models.booking import BookingStatus
+from app.models.booking import BookingStatus, PaymentMethod
 
 # Request payload cho việc tạo booking
 class BookingItemCreate(BaseModel):
@@ -13,6 +13,7 @@ class BookingCreate(BaseModel):
     idempotency_key: UUID4 = Field(..., description="UUID để chống duplicate request")
     items: List[BookingItemCreate] = Field(..., min_items=1)
     voucher_code: Optional[str] = None
+    payment_method: PaymentMethod = PaymentMethod.ewallet
 
 # Response payload
 class BookingResponse(BaseModel):

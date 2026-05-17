@@ -148,6 +148,36 @@ async def get_booking(booking_id: int, db: AsyncSession = Depends(get_db)):
 
     return booking
 
+
+@router.post("/{booking_id}/pay", response_model=BookingResponse)
+async def pay_booking(
+    booking_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Mock payment gateway success callback for the current user's booking."""
+    try:
+        return await BookingService.confirm_payment(db=db, user_id=current_user.id, booking_id=booking_id)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{booking_id}/cancel", response_model=BookingResponse)
+async def cancel_booking(
+    booking_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Cancel an unpaid reservation and release tickets back to inventory."""
+    try:
+        return await BookingService.cancel_booking(db=db, user_id=current_user.id, booking_id=booking_id)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/", response_model=BookingResponse, status_code=status.HTTP_201_CREATED)
 async def create_booking(
     payload: BookingCreate,

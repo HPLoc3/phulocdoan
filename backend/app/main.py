@@ -1,6 +1,11 @@
+import asyncio
+from contextlib import suppress
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
+from app.db.database import AsyncSessionLocal
+from app.services.booking_service import BookingService
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -23,6 +28,33 @@ app.add_middleware(
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "message": "Concert Ticket Booking API is running"}
+
+
+expiry_task: asyncio.Task | None = None
+
+
+async def booking_expiry_worker():
+    while True:
+        try:
+            async with AsyncSessionLocal() as db:
+                await BookingService.expire_stale_bookings(db)
+        except Exception as exc:
+            print(f"[booking-expiry-worker] {exc}")
+        await asyncio.sleep(30)
+
+
+@app.on_event("startup")
+async def start_booking_expiry_worker():
+    global expiry_task
+    expiry_task = asyncio.create_task(booking_expiry_worker())
+
+
+@app.on_event("shutdown")
+async def stop_booking_expiry_worker():
+    if expiry_task:
+        expiry_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await expiry_task
 
 from app.api import auth, bookings, events, venues, ticket_categories
 

@@ -23,7 +23,7 @@ INSERT INTO events (venue_id, title, description, event_date, status, is_flash_s
 (2, 'The Eras Tour Vietnam - Flash Sale', 'Sự kiện âm nhạc lớn nhất năm 2026', NOW() + INTERVAL '30 days', 'published', TRUE, NOW() - INTERVAL '1 day', NOW() + INTERVAL '7 days'),
 (1, 'Gala Nhạc Trẻ 2026', 'Quy tụ dàn sao hạng A', NOW() + INTERVAL '60 days', 'published', FALSE, NOW() - INTERVAL '5 days', NOW() + INTERVAL '50 days'),
 (3, 'Đêm nhạc Trịnh Công Sơn - Mùa Thu', 'Những tình khúc bất hủ', NOW() + INTERVAL '15 days', 'published', FALSE, NOW() - INTERVAL '10 days', NOW() + INTERVAL '10 days'),
-(2, 'K-Pop Super Concert (Draft)', 'Đang lên kế hoạch', NOW() + INTERVAL '90 days', 'draft', FALSE, NULL, NULL);
+(2, 'K-Pop Super Concert', 'Đêm nhạc K-Pop sôi động với dàn nghệ sĩ khủng', NOW() + INTERVAL '90 days', 'published', TRUE, NOW() - INTERVAL '1 day', NOW() + INTERVAL '60 days');
 
 -- 4. Seed Ticket Categories
 -- Cho The Eras Tour
@@ -36,6 +36,19 @@ INSERT INTO ticket_categories (event_id, name, description, price, total_quantit
 INSERT INTO ticket_categories (event_id, name, description, price, total_quantity, remaining_quantity, max_per_booking) VALUES
 (2, 'VVIP', 'Ghế sofa, đồ uống miễn phí', 10000000, 50, 50, 2),
 (2, 'GA', 'Đứng tự do', 500000, 5000, 5000, 10);
+
+-- Cho Đêm nhạc Trịnh Công Sơn
+INSERT INTO ticket_categories (event_id, name, description, price, total_quantity, remaining_quantity, max_per_booking) VALUES
+(3, 'VIP', 'Khu vực gần sân khấu, tầm nhìn đẹp', 1800000, 120, 120, 4),
+(3, 'Standard', 'Khu vực trung tâm nhà hát', 900000, 450, 450, 6),
+(3, 'Balcony', 'Khu vực ban công, phù hợp thưởng thức âm nhạc', 550000, 700, 700, 6);
+
+-- Cho K-Pop Super Concert
+INSERT INTO ticket_categories (event_id, name, description, price, total_quantity, remaining_quantity, max_per_booking) VALUES
+(4, 'Platinum', 'Khu vực sát sân khấu, check-in riêng', 6500000, 150, 150, 2),
+(4, 'VIP Standing', 'Khu đứng gần sân khấu', 3200000, 800, 800, 4),
+(4, 'Standard', 'Khu ngồi tiêu chuẩn', 1500000, 2500, 2500, 6),
+(4, 'Economy', 'Khu khán đài xa, giá tiết kiệm', 800000, 5000, 5000, 8);
 
 -- 5. Seed Vouchers
 INSERT INTO vouchers (code, discount_type, discount_value, min_order_amount, max_discount_amount, total_quantity, remaining_quantity, max_usage_per_user, valid_from, valid_until) VALUES

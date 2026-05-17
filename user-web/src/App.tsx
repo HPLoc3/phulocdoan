@@ -9,6 +9,9 @@ import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { MyTicketsPage } from "./pages/MyTicketsPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { AuthProvider } from "./auth/AuthContext";
+import { CartProvider } from "./cart/CartContext";
+import { CartPage } from "./pages/CartPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
 
 // Global fetcher for SWR
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -17,19 +20,23 @@ function App() {
   return (
     <SWRConfig value={{ fetcher }}>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<HomePage />} />
-              <Route path="/events/:id" element={<EventDetailPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/register" element={<RegisterPage />} />
-              <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-              <Route path="/my-tickets" element={<MyTicketsPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
+        <CartProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Layout />}>
+                <Route index element={<HomePage />} />
+                <Route path="/events/:id" element={<EventDetailPage />} />
+                <Route path="/cart" element={<CartPage />} />
+                <Route path="/checkout" element={<CheckoutPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/my-tickets" element={<MyTicketsPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </CartProvider>
       </AuthProvider>
     </SWRConfig>
   );

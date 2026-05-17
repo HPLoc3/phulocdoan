@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
 import { Outlet, Link, NavLink, useNavigate } from "react-router-dom";
-import { LogOut, Ticket, User as UserIcon, Settings, Lock, ChevronDown } from "lucide-react";
+import { LogOut, Ticket, User as UserIcon, Settings, Lock, ChevronDown, ShoppingCart } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
+import { useCart } from "../cart/CartContext";
 
 export const Layout = () => {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { itemCount } = useCart();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -42,6 +44,22 @@ export const Layout = () => {
           </Link>
 
           <div className="flex items-center gap-4 ml-auto">
+            <NavLink
+              to="/cart"
+              className={({ isActive }) =>
+                `relative inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors ${
+                  isActive ? "bg-[var(--color-primary)]/20 text-[var(--color-primary)]" : "text-gray-300 hover:text-white hover:bg-white/5"
+                }`
+              }
+              title="Giỏ hàng"
+            >
+              <ShoppingCart size={18} />
+              {itemCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-[var(--color-primary)] text-white text-[11px] font-bold flex items-center justify-center">
+                  {itemCount}
+                </span>
+              )}
+            </NavLink>
             {isLoading ? (
               <div className="h-8 w-32 rounded-full bg-white/5 animate-pulse" />
             ) : isAuthenticated && user ? (

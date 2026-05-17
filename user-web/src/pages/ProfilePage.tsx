@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { User as UserIcon, Mail, Phone, Shield, Settings, Lock, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Clock,
   CheckCircle2,
+  CreditCard,
   XCircle,
 } from "lucide-react";
 import { apiFetch, ApiError } from "../lib/api";
@@ -37,6 +38,9 @@ type MyBooking = {
   created_at: string;
   items: BookingItem[];
 };
+
+type BookingAction = "pay" | "cancel";
+type BusyAction = { id: number; action: BookingAction } | null;
 
 const formatVND = (n: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
@@ -66,7 +70,17 @@ const useCountdown = (expiresAt: string | null) => {
   return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
-const BookingCard = ({ booking }: { booking: MyBooking }) => {
+const BookingCard = ({
+  booking,
+  busyAction,
+  onPay,
+  onCancel,
+}: {
+  booking: MyBooking;
+  busyAction: BusyAction;
+  onPay: (id: number) => void;
+  onCancel: (id: number) => void;
+}) => {
   const [expanded, setExpanded] = useState(false);
   const meta = statusMeta[booking.status] ?? {
     label: booking.status,
@@ -74,8 +88,12 @@ const BookingCard = ({ booking }: { booking: MyBooking }) => {
     Icon: Ticket,
   };
   const StatusIcon = meta.Icon;
-  const isPending = booking.status === "pending" || booking.status === "payment_pending";
+  const isPending =
+    booking.status === "pending" ||
+    booking.status === "payment_pending" ||
+    (booking.status === "confirmed" && !!booking.expires_at);
   const countdown = useCountdown(isPending ? booking.expires_at : null);
+  const isBusy = busyAction?.id === booking.id;
 
   return (
     <div className="glass rounded-2xl border border-white/10 overflow-hidden">
@@ -168,6 +186,36 @@ const BookingCard = ({ booking }: { booking: MyBooking }) => {
                   <span>{formatVND(booking.total_amount)}</span>
                 </div>
               </div>
+              {isPending && (
+                <div className="flex flex-wrap gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => onPay(booking.id)}
+                    disabled={isBusy}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[var(--color-primary)] to-orange-500 px-4 py-2 text-sm font-bold text-white hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isBusy && busyAction?.action === "pay" ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <CreditCard size={16} />
+                    )}
+                    Thanh toán
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onCancel(booking.id)}
+                    disabled={isBusy}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-gray-200 hover:bg-white/10 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isBusy && busyAction?.action === "cancel" ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <XCircle size={16} />
+                    )}
+                    Hủy giữ vé
+                  </button>
+                </div>
+              )}
               <div className="flex justify-between items-center pt-2 text-xs text-gray-500">
                 <span>Đặt lúc {new Date(booking.created_at).toLocaleString("vi-VN")}</span>
                 <Link
@@ -190,6 +238,12 @@ export const MyTicketsPage = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<MyBooking[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [busyAction, setBusyAction] = useState<BusyAction>(null);
+
+  const loadBookings = useCallback(async () => {
+    const data = await apiFetch<MyBooking[]>("/bookings/me");
+    setBookings(data);
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -197,13 +251,27 @@ export const MyTicketsPage = () => {
       navigate("/login", { state: { from: "/my-tickets" }, replace: true });
       return;
     }
-    apiFetch<MyBooking[]>("/bookings/me")
-      .then(setBookings)
+    loadBookings()
       .catch((err) => {
         setError(err instanceof ApiError ? err.message : "Lỗi tải vé");
         setBookings([]);
       });
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading, loadBookings, navigate]);
+
+  const runBookingAction = async (id: number, action: BookingAction) => {
+    setError(null);
+    setBusyAction({ id, action });
+    try {
+      await apiFetch(`/bookings/${id}/${action === "pay" ? "pay" : "cancel"}`, {
+        method: "POST",
+      });
+      await loadBookings();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Khong the cap nhat don hang");
+    } finally {
+      setBusyAction(null);
+    }
+  };
 
   if (authLoading || bookings === null) {
     return (
@@ -243,7 +311,13 @@ export const MyTicketsPage = () => {
         ) : (
           <div className="space-y-4">
             {bookings.map((b) => (
-              <BookingCard key={b.id} booking={b} />
+              <BookingCard
+                key={b.id}
+                booking={b}
+                busyAction={busyAction}
+                onPay={(id) => runBookingAction(id, "pay")}
+                onCancel={(id) => runBookingAction(id, "cancel")}
+              />
             ))}
           </div>
         )}
